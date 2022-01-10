@@ -12,48 +12,102 @@ import {
     ConfirmationDialog
 } from '@devexpress/dx-react-scheduler-material-ui';
 import {useState} from "react";
+import axios from "axios";
+
+const api_url = "http://localhost:8000/plan";
 
 const now = new Date();
 const currentDate = now;
 
 const App = () => {
     const [data, setData] = useState([
-        {
-            startDate: '2022-01-06T09:45',
-            endDate: '2022-01-06T10:45',
-            title: 'テスト予定',
-            notes: 'aaaa',
-            id: 0
-        }
+        { startDate: '2010-01-01T09:45', endDate: '2010-01-01T11:00', title: 'Don`t Delete!!', id: 0 },
     ]);
 
-    const commitChanges = ({added, changed, deleted}) => {
+    const commitChanges = async ({added, changed, deleted}) => {
         if(added){
-            let new_id = 0;
-            if(data.length > 0){
-                new_id = data[data.length - 1].id + 1;
-            };
-
-            setData(
-                [...data, {id: new_id, ...added}]
-            );
+            await planAdd(added);
         }
 
         if(changed){
-            const change_data = data.map(appointment => (
-                    changed[appointment.id] ? {...appointment, ...changed[appointment.id]} : appointment
-                )
-            );
+            let change_data = changed[Object.keys(changed)[0]];
+            change_data.id = Number(Object.keys(changed)[0]);
 
-            setData(change_data);
+            await planChange(change_data);
         }
 
         if(deleted){
-            const delete_data = data.filter(appointment => appointment.id !== deleted);
-
-            setData(delete_data);
+            await planDelete(deleted);
         }
+
+        planRead();
     };
+
+    const planAdd = (added) => {
+        axios.post(api_url, {
+            start_date: added.startDate,
+            end_date: added.endDate,
+            title: added.title,
+            notes: added.notes
+        }).then(
+            res => {
+                console.log(res);
+            }
+        ).catch(
+            err => {
+                console.error(err);
+            }
+        );
+    }
+
+    const planChange = (changed) => {
+        axios.put(api_url, {
+            id: changed.id,
+            start_date: changed.startDate,
+            end_date: changed.endDate,
+            title: changed.title,
+            notes:  changed.notes
+        }).then(
+            res => {
+                console.log(res);
+            }
+        ).catch(
+            err => {
+                console.error(err);
+            }
+        )
+    }
+
+    const planDelete = (deleted) => {
+        axios.delete(api_url, {
+            data: {
+                id: deleted
+            }
+        }).then(
+            res => {
+                console.log(res);
+            }
+        ).catch(
+            err => {
+                console.error(err);
+            }
+        )
+    }
+
+    const planRead = () => {
+        axios.get(api_url
+        ).then(
+            res => {
+                setData(res.data.results)
+            }
+        ).catch(
+            err => {
+                console.error(err);
+            }
+        )
+    }
+
+
 
     return (
         <Paper>
