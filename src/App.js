@@ -11,7 +11,7 @@ import {
     TodayButton,
     ConfirmationDialog
 } from '@devexpress/dx-react-scheduler-material-ui';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 
 const api_url = "http://localhost:8000/plan";
@@ -106,6 +106,10 @@ const App = () => {
             }
         )
     }
+
+    useEffect(() => {
+        planRead();
+    }, []);
 
 
 
